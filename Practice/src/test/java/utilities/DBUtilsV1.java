@@ -69,7 +69,6 @@ public class DBUtils {
     public static List<Map<String, Object>> convertResultSet(ResultSet rs) {
         List<Map<String, Object>> table = new ArrayList<>();
         List<String> columnNames = getColumnNames(rs);
-
         // Populate table From result set
         // Iterate through each Row
         while (true) {
@@ -81,19 +80,25 @@ public class DBUtils {
                 for (String columnName : columnNames) {
                     row.put(columnName, rs.getObject(columnName));
                 }
-
                 table.add(row);
             } catch (SQLException e) {
                 e.printStackTrace();
             }
         }
+        // Close result set after we are done
+        try {
+            rs.close();
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
         return table;
     }
 
     public static void main(String[] args) {
-        DBUtils.open();
-        ResultSet rs = DBUtils.query("SELECT * FROM account;");
+        ResultSet rs = DBUtils.query("SELECT id FROM account WHERE name = '300';");
         List<Map<String, Object>> table = DBUtils.convertResultSet(rs);
+        String s = String.valueOf(table.get(0).get("id"));
+        System.out.println(s);
         table.forEach(System.out::println);
     }
 }
