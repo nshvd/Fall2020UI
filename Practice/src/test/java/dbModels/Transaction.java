@@ -1,9 +1,7 @@
 package dbModels;
 
 import lombok.Data;
-import utilities.DBUtilsV2;
-
-import java.sql.ResultSet;
+import utilities.DB.DBUtilsV2;
 import java.util.List;
 
 @Data
@@ -28,17 +26,14 @@ public class Transaction {
 
     public static Transaction getById(int id) {
         String query = BASE_QUERY + "WHERE T1.id = ?;";
-
-        ResultSet rs = DBUtilsV2.query(query, id);
-        List<Transaction> transactionList = DBUtilsV2.convertResultSetToBeans(rs, Transaction.class);
+        List<Transaction> transactionList = DBUtilsV2.query(query, id).toBeans(Transaction.class);
         if(transactionList.isEmpty()) return null;
         return transactionList.get(0);
     }
 
     public static List<Transaction> getByCategory(String category) {
         String query = BASE_QUERY + "WHERE T2.category = ?;";
-        ResultSet rs = DBUtilsV2.query(query, category);
-        return DBUtilsV2.convertResultSetToBeans(rs, Transaction.class);
+        return DBUtilsV2.query(query, category).toBeans(Transaction.class);
     }
 
 }

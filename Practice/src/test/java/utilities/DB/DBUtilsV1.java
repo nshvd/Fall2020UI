@@ -1,7 +1,7 @@
-package utilities;
+package utilities.DB;
 
-import org.apache.commons.dbutils.BeanProcessor;
 import org.junit.Assert;
+import utilities.ConfigReader;
 
 import java.sql.*;
 import java.util.ArrayList;
@@ -9,11 +9,10 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class DBUtilsV2 {
+public class DBUtilsV1 {
     private static Connection connection;
     private static Statement statement;
-    private static final String JDBC_URL = "jdbc:mysql://3.131.35.165:3306/digitalbank?user=dbank&password=MyCOMPleaxPasSW0rd!12X";
-    private static BeanProcessor beanProcessor;
+    private static final String JDBC_URL = ConfigReader.getProperty("jdbc_url");
 
     // Opening connection to a DB. If connection is not yet opened.
     public static void open() {
@@ -21,11 +20,22 @@ public class DBUtilsV2 {
             if (connection == null) {
                 connection = DriverManager.getConnection(JDBC_URL);
                 statement = connection.createStatement();
-                beanProcessor = new BeanProcessor();
             }
         } catch (SQLException e) {
             e.printStackTrace();
             Assert.fail("Can't establish connection to DB");
+        }
+    }
+
+    public static void close() {
+        try {
+            if (statement != null) statement.close();
+            if (connection != null) connection.close();
+            connection = null;
+            statement = null;
+        } catch (SQLException e) {
+            e.printStackTrace();
+            Assert.fail("Can't close connection to DB");
         }
     }
 
@@ -46,24 +56,10 @@ public class DBUtilsV2 {
         return columnNames;
     }
 
-
-                                                    // VarArgs
-                                                    // ["String"]
-                                                    // ["String1", "String2"]
-    //SELECT *
-   //FROM digitalbank.user_profile
-   //WHERE id = ?;
-    public static ResultSet query(String query, Object... params) {
+    public static ResultSet query(String query) {
         if (connection == null) open();
         try {
-            if (params.length == 0) return statement.executeQuery(query);
-
-            PreparedStatement preparedStatement = connection.prepareStatement(query);
-            // Replace question marks with params
-            for (int i = 0; i < params.length; i++) {
-                preparedStatement.setObject(i + 1, params[i]);
-            }
-            return preparedStatement.executeQuery();
+            return statement.executeQuery(query);
         } catch (SQLException e) {
             e.printStackTrace();
             Assert.fail("Not Able to execute a query");
@@ -71,19 +67,8 @@ public class DBUtilsV2 {
         return null;
     }
 
-    // T - Declares generic data type
-    // In a way it postpones the Data type declaration
-    public static <T> List<T> convertResultSetToBeans(ResultSet rs, Class<T> beanClass) {
-        try {
-            return beanProcessor.toBeanList(rs, beanClass);
-        } catch (SQLException e) {
-            e.printStackTrace();
-        }
-        return new ArrayList<>();
-    }
-
     // Key - column name, value - data in that column
-    public static List<Map<String, Object>> convertResultSetToListOfMaps(ResultSet rs) {
+    public static List<Map<String, Object>> convertResultSet(ResultSet rs) {
         List<Map<String, Object>> table = new ArrayList<>();
         List<String> columnNames = getColumnNames(rs);
         // Populate table From result set
@@ -111,15 +96,11 @@ public class DBUtilsV2 {
         return table;
     }
 
-    public static void close() {
-        try {
-            if (statement != null) statement.close();
-            if (connection != null) connection.close();
-            connection = null;
-            statement = null;
-        } catch (SQLException e) {
-            e.printStackTrace();
-            Assert.fail("Can't close connection to DB");
-        }
+    public static void main(String[] args) {
+        ResultSet rs = DBUtilsV1.query("SELECT id FROM account WHERE name = '300';");
+        List<Map<String, Object>> table = DBUtilsV1.convertResultSet(rs);
+        String s = String.valueOf(table.get(0).get("id"));
+        System.out.println(s);
+        table.forEach(System.out::println);
     }
 }
