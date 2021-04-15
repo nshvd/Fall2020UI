@@ -1,5 +1,7 @@
 package step_defs;
 
+import cucumber.api.PendingException;
+import cucumber.api.java.en.And;
 import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import org.junit.Assert;
@@ -28,4 +30,11 @@ public class BasicValidationSteps {
         Assert.assertTrue(driver.getTitle().toLowerCase().contains(searchCriteria));
     }
 
+    @And("^I get user with id \"([^\"]*)\" from database$")
+    public Object iGetUserWithIdFromDatabase(String id) {
+       String q = "SELECT * FROM USERS WHERE lastName = ?";
+       //List<User> users = DBUtils.query(q, id).toBeans(User.class);
+       // user = user.isEmpty ? null : users.get(0);
+        return new Object();
+    }
 }

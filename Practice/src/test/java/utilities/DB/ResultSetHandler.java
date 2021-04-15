@@ -2,7 +2,6 @@ package utilities.DB;
 
 import org.apache.commons.dbutils.BeanProcessor;
 import org.junit.Assert;
-
 import java.sql.ResultSet;
 import java.sql.ResultSetMetaData;
 import java.sql.SQLException;

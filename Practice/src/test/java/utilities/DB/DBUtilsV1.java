@@ -2,7 +2,6 @@ package utilities.DB;
 
 import org.junit.Assert;
 import utilities.ConfigReader;
-
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -40,7 +39,7 @@ public class DBUtilsV1 {
     }
 
     // Get Column names by using Result Set metadata
-    public static List<String> getColumnNames(ResultSet rs) {
+    private static List<String> getColumnNames(ResultSet rs) {
         List<String> columnNames = new ArrayList<>();
         try {
             ResultSetMetaData metaData = rs.getMetaData();
@@ -94,13 +93,5 @@ public class DBUtilsV1 {
             e.printStackTrace();
         }
         return table;
-    }
-
-    public static void main(String[] args) {
-        ResultSet rs = DBUtilsV1.query("SELECT id FROM account WHERE name = '300';");
-        List<Map<String, Object>> table = DBUtilsV1.convertResultSet(rs);
-        String s = String.valueOf(table.get(0).get("id"));
-        System.out.println(s);
-        table.forEach(System.out::println);
     }
 }

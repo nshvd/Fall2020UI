@@ -1,24 +1,26 @@
 package utilities.DB;
 
-import org.apache.commons.dbutils.BeanProcessor;
+import org.apache.commons.dbutils.QueryRunner;
 import org.junit.Assert;
-
 import java.sql.*;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+
 
 public class DBUtilsV2 {
     private static Connection connection;
     private static Statement statement;
-    private static final String JDBC_URL = "jdbc:mysql://3.131.35.165:3306/digitalbank?user=dbank&password=MyCOMPleaxPasSW0rd!12X";
+    private static QueryRunner queryRunner = new QueryRunner();
+    private static final String JDBC_URL =
+            "jdbc:mysql://3.131.35.165:3306/{DB}?user=dbank&password=MyCOMPleaxPasSW0rd!12X";
 
     // Opening connection to a DB. If connection is not yet opened.
     public static void open() {
+       open("");
+    }
+
+    public static void open(String database) {
         try {
             if (connection == null) {
-                connection = DriverManager.getConnection(JDBC_URL);
+                connection = DriverManager.getConnection(JDBC_URL.replace("{DB}", database));
                 statement = connection.createStatement();
             }
         } catch (SQLException e) {
@@ -26,21 +28,49 @@ public class DBUtilsV2 {
             Assert.fail("Can't establish connection to DB");
         }
     }
+
     // VarArgs
     // ["String"]
     // ["String1", "String2"]
     //SELECT *
     //FROM digitalbank.user_profile
-    //WHERE id = ?;
-
-    public static boolean executeStatement(String sqlStatement) {
+    //WHERE id IN (?, ?, ?);
+// Should have same number of params as we have '?' in our query/statement
+    public static boolean executeStatement(String sqlStatement, Object... params) {
         if (connection == null) open();
         try {
-            return statement.execute(sqlStatement);
+           if(params.length == 0) return statement.execute(sqlStatement);
+           PreparedStatement preparedStatement = connection.prepareStatement(sqlStatement);
+            for (int i = 0; i < params.length; i++) {
+                preparedStatement.setObject(i + 1, params[i]);
+            }
+            return preparedStatement.execute();
         } catch (SQLException e) {
             e.printStackTrace();
         }
         return false;
+    }
+
+    public static boolean insertBean(String query, Object bean, String[] properties) {
+        if (connection == null) open();
+        try {
+            PreparedStatement preparedStatement = connection.prepareStatement(query);
+            queryRunner.fillStatementWithBean(preparedStatement, bean, properties);
+            return preparedStatement.execute();
+        }catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return false;
+    }
+
+    public static boolean truncateTable(String tableName) {
+        String sqlStatement = String.format("TRUNCATE Table %s;", tableName);
+        return executeStatement(sqlStatement);
+    }
+
+    public static boolean deleteRecord(String table, String column, String value) {
+        String statement = String.format("DELETE FROM %s WHERE %s = '%s'", table, column, value);
+        return executeStatement(statement);
     }
 
     // Object... = Object[]
